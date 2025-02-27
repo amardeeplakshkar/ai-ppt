@@ -5,9 +5,11 @@ import { PPTGeneratorPrompt } from '@/constant';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
+import DownloadButton from '@/components/DownloadButton';
+import { PresentationData } from '@/lib/types';
 
 const Generator = () => {
-    const [pptData, setPptData] = useState<string | null>(null);
+    const [pptData, setPptData] = useState<PresentationData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
@@ -26,9 +28,18 @@ const Generator = () => {
             }
 
             const data = await response.text();
-            setPptData(data);
+            
+            try {
+                // Parse the JSON data
+                const jsonData = JSON.parse(data);
+                setPptData(jsonData);
+            } catch (parseError) {
+                console.error("Failed to parse JSON:", parseError);
+                setError(`Failed to parse presentation data. Please try again.`);
+                setPptData(null);
+            }
         } catch (err) {
-            setError(`Failed to generate outline. Please try again.${err}`);
+            setError(`Failed to generate presentation. Please try again. ${err}`);
         } finally {
             setLoading(false);
         }
@@ -80,12 +91,50 @@ const Generator = () => {
     }
 
     return (
-        <>
-            <pre>
-                {pptData}
-            </pre>
-            {error && <p>{error}</p>}
-        </>
+        <div className="container -mt-2 mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto">
+                {pptData && (
+                    <>
+                        <h1 className="text-2xl font-bold mb-6">{pptData.presentation.title}</h1>
+                        
+                        <div className="bg-accent h-[65dvh] overflow-y-auto rounded-lg shadow-xl p-6 mb-6">
+                            <h2 className="text-xl font-semibold mb-4">Presentation Preview</h2>
+                            
+                            {pptData.presentation.slides.map((slide, slideIndex) => (
+                                <div key={slideIndex} className="mb-8 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                    <h3 className="text-lg font-medium mb-3">{slide.slide_title}</h3>
+                                    
+                                    {slide.content.map((section, sectionIndex) => (
+                                        <div key={sectionIndex} className="mb-4">
+                                            <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">{section.title}</h4>
+                                            
+                                            {section.subsections.map((subsection, subsectionIndex) => (
+                                                <div key={subsectionIndex} className="ml-4 mb-3">
+                                                    <h5 className="font-medium text-gray-700 dark:text-gray-300 mb-1">{subsection.title}</h5>
+                                                    <p className="text-gray-600 dark:text-gray-400 text-sm">{subsection.content}</p>
+                                                    
+                                                    {subsection.image_src && (
+                                                        <div className="mt-2">
+                                                            <img 
+                                                                src={subsection.image_src} 
+                                                                alt={subsection.title} 
+                                                                className="max-w-xs rounded-md"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <DownloadButton presentationData={pptData} />
+                    </>
+                )}
+            </div>
+        </div>
     )
 }
 
