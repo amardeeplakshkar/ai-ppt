@@ -1,8 +1,6 @@
 # 🎯 AI PowerPoint Generator
 
-<div align="center">
-  <img src="https://image.pollinations.ai/prompt/A%20modern%20presentation%20slide%20with%20AI%20generating%20content%2C%20minimalist%20design" width="500" alt="AI PowerPoint Generator" />
-  
+<div align="center"> 
   <p><em>Transform your ideas into professional presentations with AI</em></p>
 </div>
 
